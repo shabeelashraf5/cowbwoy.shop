@@ -1,0 +1,603 @@
+var express = require('express');
+
+const collectioncart = require('../model/cartD')
+const collectionproduct = require('../model/productsD')
+const collectionaddress = require('../model/address');
+const collectioncoupon = require('../model/couponD')
+const collectionorder = require('../model/orderD')
+const Razorpay = require('razorpay')
+
+
+    const cart = function(req, res) { 
+    const customerId = req.session.customerId;
+  
+    collectioncart
+      .find({ customers_id: customerId })
+      .populate('product_id')
+      .exec(function(err, docs) {
+        if (err) {
+          console.log(err);
+        } else {
+          if (docs && docs.length) {
+            res.render('cart', {
+              cartItems: docs,
+              loggedIn: req.session.customerId
+            });
+          } else {
+            res.render('cart', {
+              cartItems: [],
+              loggedIn: req.session.customerId
+            });
+          }
+        }
+      });
+  }; 
+
+  
+
+ 
+  const postCart = function(req, res) {
+  const productId = req.body.product_id;
+  const customerId = req.session.customerId;
+  const quantity = req.body.quantity || 1; 
+  const cartItem = new collectioncart({
+    customers_id: customerId,
+    product_id: productId,
+    quantity: quantity 
+  });
+
+  cartItem.save()
+    .then(() => {
+      res.redirect('/cart');
+    })
+    .catch((err) => {
+      console.error(err);
+      res.redirect('/login');
+    });
+}
+
+
+/* const updateCart = async function (req,res){
+
+  const cartItemId = req.params.cartItemId;
+  const newQuantity = req.body.quantity;
+
+  try {
+    // Update quantity value in database
+    const updatedCartItem = await collectioncart.findByIdAndUpdate(
+      cartItemId,
+      { $set: { quantity: newQuantity } },
+      { new: true }
+    );
+
+    // Fetch updated product information from database
+    const updatedProduct = await collectionproduct.findById(updatedCartItem.product_id);
+
+    // Fetch all cart items for the current customer
+    const customerId = req.session.customerId;
+    const cartItems = await collectioncart
+      .find({ customers_id: customerId })
+      .populate('product_id')
+      .exec();
+
+    // Calculate total amount
+    let totalAmount = 0;
+    cartItems.forEach((cartItem) => {
+      const product = cartItem.product_id;
+      totalAmount += product.price * cartItem.quantity;
+    });
+
+    res.render('cart', {
+      cartItems: cartItems,
+      totalAmount: totalAmount,
+      loggedIn: req.session.customerId
+    });
+  } catch (error) {
+    console.error(error);
+    
+  }
+
+
+} */
+
+const updateCart = async function (req, res) {
+  const cartItemId = req.params.cartItemId;
+  const newQuantity = req.body.quantity;
+  let totalAmount = 0;
+
+  try {
+    
+    const updatedCartItem = await collectioncart.findByIdAndUpdate(
+      cartItemId,
+      { $set: { quantity: newQuantity } },
+      { new: true }
+    );
+
+    
+    const updatedProduct = await collectionproduct.findById(
+      updatedCartItem.product_id
+    );
+
+    
+    const customerId = req.session.customerId;
+    const cartItems = await collectioncart
+      .find({ customers_id: customerId })
+      .populate("product_id")
+      .exec();
+
+    
+    cartItems.forEach((cartItem) => {
+      const product = cartItem.product_id;
+      totalAmount += product.price * cartItem.quantity;
+    });
+
+    res.render("cart", {
+      cartItems: cartItems,
+      subtotal: totalAmount,
+      total: totalAmount, 
+      loggedIn: req.session.customerId,
+    });
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+
+ const deleteCart = function(req,res){
+
+  collectioncart.findByIdAndRemove( req.params.id, (err,docs) =>{
+
+    if(err){
+        console.log('Error Occured')
+    }else{
+        res.redirect('/cart')
+    }
+
+})
+
+ }
+
+
+
+/* const checkout = async function(req, res) {
+  const customerId = req.session.customerId;
+  const couponCode = req.query.code;
+
+  try {
+    const cartItems = await collectioncart
+      .find({ customers_id: customerId })
+      .populate('product_id')
+      .populate({ path: 'customers_id', select: 'fname lname email' })
+      .exec();
+
+    const addressList = await collectionaddress.find({ customers_id: customerId });
+
+
+    res.render('information1', {
+      cartItems: cartItems,
+      addressList: addressList,
+      loggedIn: req.session.customerId,
+     
+    });
+  } catch (err) {
+    console.log(err);
+  }
+} */
+
+  const checkout = async function(req, res) {
+  const selectedAddressId = req.query.addressId;
+  const customerId = req.session.customerId;
+  const couponCode = req.query.code;
+
+  try {
+    const cartItems = await collectioncart
+      .find({ customers_id: customerId })
+      .populate('product_id')
+      .populate({ path: 'customers_id', select: 'fname lname email' })
+      .exec();
+
+      const coupon = await collectioncoupon.findOne({ code: couponCode });
+
+      let discount = 0;
+      let subtotal = 0
+      let total = 0; 
+
+    
+    for (const cartItem of cartItems) {
+      const quantity = cartItem.quantity;
+      const price = cartItem.product_id.price;
+      subtotal += quantity * price;
+      total += quantity * price;
+    }
+
+    const addressList = await collectionaddress.find({ customers_id: customerId });
+
+      if (coupon && !coupon.usedBy.includes(customerId)) {
+      if (subtotal >= 1000) {
+        discount = coupon.price;
+        total -= discount;
+        await collectioncoupon.findByIdAndUpdate(coupon._id, {$push: {usedBy: customerId}});
+      } else {
+        req.flash('error', 'Minimum purchase of 1000 required to use this coupon.');
+      }
+    } else if (coupon && coupon.usedBy.includes(customerId)) {
+      req.flash('error', 'This coupon has already been used by you.');
+    }
+
+    const selectedAddress = await collectionaddress.findOne({_id: selectedAddressId, customers_id: customerId})
+
+    res.render('information2', {
+      cartItems: cartItems,
+      selectedAddress: selectedAddress,
+      addressList: addressList,
+      discount: discount,
+      loggedIn: req.session.customerId,
+      subtotal: subtotal,
+      coupon: coupon,
+      total: total
+    });
+
+    
+  } catch (err) {
+    console.log(err);
+  }
+} 
+
+
+
+
+const address = async function (req, res) {
+  const customerId = req.session.customerId;
+  const data = {
+    customers_id: customerId,
+    address: {
+      country: req.body['address[].country'],
+      fname: req.body['address[].fname'],
+      lname: req.body['address[].lname'],
+      address: req.body['address[].address'],
+      city: req.body['address[].city'],
+      state: req.body['address[].state'],
+      phone: req.body['address[].phone']
+    }
+  }
+
+  try {
+    const addressDoc = await collectionaddress.create(data);
+    const addressList = await collectionaddress.find({ customers_id: customerId });
+    res.redirect('/checkout');
+  } catch (error) {
+    console.error(error);
+    res.sendStatus(500);
+  }
+}
+
+const deleteaddress = function(req, res) {
+  const addressId = req.params.id;
+
+  collectionaddress.findByIdAndRemove(addressId, (err, deletedAddress) => {
+    if (err) {
+      console.log('Error Occured', err);
+      res.status(500).send('Error Occured');
+    } else {
+      console.log('Address deleted:', deletedAddress);
+      res.redirect('/checkout');
+    }
+  });
+}
+
+
+/* const payment = async function (req,res){
+  const selectedAddressId = req.query.addressId;
+  const couponCode = req.query.code;
+  const customerId = req.session.customerId;
+
+  try {
+    const cartItems = await collectioncart
+      .find({ customers_id: customerId })
+      .populate('product_id')
+      .populate({ path: 'customers_id', select: 'fname lname email' })
+      .exec();
+
+    const coupon = await collectioncoupon.findOne({ code: couponCode });
+
+    let discount = 0;
+    let total = 0;
+
+    
+    cartItems.forEach(function(cartItem) {
+      const product = cartItem.product_id;
+      total += product.price;
+    });
+
+   
+    if (coupon && !coupon.usedBy.includes(customerId)) {
+      discount = coupon.price;
+      total -= discount;
+      await collectioncoupon.findByIdAndUpdate(coupon._id, {$push: {usedBy: customerId}});
+    } else if (coupon && coupon.usedBy.includes(customerId)) {
+      req.flash('error', 'This coupon has already been used by you.');
+    }
+
+    const selectedAddress = await collectionaddress.findOne({_id: selectedAddressId, customers_id: customerId})
+    
+    res.render('payment', {
+      selectedAddress: selectedAddress,
+      cartItems: cartItems,
+      discount: discount,
+      total: total,
+      loggedIn: req.session.customerId
+    });
+  } catch (err) {
+    console.log(err)
+  }
+}  */
+
+
+
+ /* const placeOrder = async function(req, res) {
+  const customerId = req.body.customer_id;
+  const addressId = req.body.address_id;
+  const cartIds = req.body.cart;
+  const paymentMethod = req.body.paymentMethod;
+
+  try {
+    const cartItems = await collectioncart.find({ _id: { $in: cartIds } }).populate('product_id').exec();
+    console.log('cartItems:', cartItems); // log cart items to console
+
+    const subtotal = cartItems.reduce((acc, item) => acc + item.quantity * item.product_id.price, 0);
+    const total = subtotal; // assume no discounts for now
+
+    const cartItemIds = cartItems.map(item => item._id);
+
+    const order = new collectionorder({
+      customers_id: customerId,
+      address_id: addressId,
+      cart: cartItemIds,
+      total: total,
+      payment_method: paymentMethod
+    });
+
+    await order.save();
+    await collectioncart.deleteMany({ _id: { $in: cartIds } });
+
+    res.send('Order Confirmed');
+  } catch (err) {
+    console.log(err);
+    req.flash('error', 'An error occurred while placing the order.');
+    res.send('Error Occurred');
+  }
+}; */
+
+
+/* const placeOrder = async function(req, res) {
+  const customerId = req.body.customer_id;
+  const addressId = req.body.address_id;
+  const cartIds = req.body.cart;
+  const paymentMethod = req.body.paymentMethod;
+
+  try {
+    const cartItems = await collectioncart.find({ customers_id: customerId }).populate('product_id').exec();
+    console.log('cartItems:', cartItems); // log cart items to console
+
+    const subtotal = cartItems.reduce((acc, item) => acc + item.quantity * item.product_id.price, 0);
+    const total = subtotal; // assume no discounts for now
+
+    const cartItemIds = cartItems.map(item => item._id);
+    const indexes = await collectionorder.listIndexes(); // remove .toArray() here
+    console.log('indexes:', indexes); // log indexes to console
+
+    const indexExists = indexes.some(index => index.name === 'title_1');
+    if (!indexExists) {
+      await collectionorder.collection.createIndex({ title: 1 }); // corrected line
+    }
+
+    const order = new collectionorder({
+      customers_id: customerId,
+      address_id: addressId,
+      cart_id: cartItemIds,
+      total: total,
+      payment_method: paymentMethod
+    });
+
+    await order.save();
+    await collectioncart.deleteMany({ _id: { $in: cartItemIds } });
+
+    res.redirect('/account');
+  } catch (err) {
+    console.log(err);
+    req.flash('error', 'An error occurred while placing the order.');
+    res.send('Error Occurred');
+  }
+}; */
+
+ /* const placeOrder = async function(req, res) {
+  const customerId = req.body.customer_id;
+  const addressId = req.body.address_id;
+  const cartIds = req.body.cart_id;
+  const paymentMethod = req.body.paymentMethod;
+
+  try {
+
+    const cartItems = await collectioncart.find({ customers_id: customerId }).populate('product_id').exec();
+    console.log('cartItems:', cartItems); 
+
+    const subtotal = cartItems.reduce((acc, item) => acc + item.quantity * item.product_id.price, 0);
+    const total = subtotal; 
+
+    
+    const orderItems = cartItems.map(item => ({
+      product_id: item.product_id._id,
+      title: item.product_id.title,
+      image: item.product_id.image,
+      price: item.product_id.price,
+      quantity: item.quantity,
+    }));
+    
+    const cartItemIds = cartItems.map(item => item._id);
+    const indexes = await collectionorder.listIndexes();
+    const indexExists = indexes.some(index => index.name === 'title_1');
+    if (!indexExists) {
+      await collectionorder.collection.createIndex({ title: 1 });
+    }
+    
+    const order = new collectionorder({
+      customers_id: customerId,
+      address_id: addressId,
+      cart_id: cartItemIds ,
+      total: total,
+      payment_method: paymentMethod,
+      order_items: orderItems 
+    });
+
+    await order.save();
+    await collectioncart.deleteMany({ _id: { $in: cartItemIds  } });
+
+    res.redirect('/account');
+  } catch (err) {
+    console.log(err);
+    req.flash('error', 'An error occurred while placing the order.');
+    res.send('Error Occurred');
+  }
+}; */
+
+  const placeOrder = async function(req, res) {
+  const customerId = req.body.customer_id;
+  const addressId = req.body.address_id;
+  const cartIds = req.body.cart_id;
+  const paymentMethod = req.body.paymentMethod;
+  const discount = req.body.discount;
+
+  var instance = new Razorpay({ 
+    key_id: 'rzp_test_Eq96dbjxRileV6',
+    key_secret: 'WV60M8zuQzlnwWTHhJ8IzxGq' })
+
+  try {
+   // const cartItems = await collectioncart.find({ customers_id: customerId }).populate('product_id').exec();
+   const cartItems = await collectioncart.find({ customers_id: customerId }).populate({
+    path: 'product_id',
+    populate: {
+      path: 'category_id',
+      model: 'category',
+      select: 'title'
+    }
+  }).exec();
+
+    console.log('cartItems:', cartItems); 
+   
+
+    const subtotal = cartItems.reduce((acc, item) => acc + item.quantity * item.product_id.price, 0);
+    const total = subtotal - discount;
+
+    /* const orderItems = cartItems.map(item => ({
+      product_id: item.product_id._id,
+      title: item.product_id.title,
+      image: item.product_id.image,
+      category: item.product_id.category_id.title,
+      price: item.product_id.price,
+      quantity: item.quantity,
+    })); */
+
+    /* const orderItems = cartItems.map(item => {
+      console.log(item.product_id.category_id); // check the value of category_id
+      return {
+        product_id: item.product_id._id,
+        title: item.product_id.title,
+        image: item.product_id.image,
+        category: item.product_id.category_id.title,
+        price: item.product_id.price,
+        quantity: item.quantity,
+      };
+    }); */
+
+    const orderItems = cartItems.map(item => ({
+      product_id: item.product_id._id,
+      title: item.product_id.title,
+      image: item.product_id.image,
+      category: item.product_id.category_id.title, // access the title field of the category document
+      price: item.product_id.price,
+      quantity: item.quantity,
+
+    }));
+    
+    console.log('orderItems:', orderItems);
+    
+    const cartItemIds = cartItems.map(item => item._id);
+    const indexes = await collectionorder.listIndexes();
+    const indexExists = indexes.some(index => index.name === 'title_1');
+    if (!indexExists) {
+      await collectionorder.collection.createIndex({ title: 1 });
+    }
+
+    const order = new collectionorder({
+      customers_id: customerId,
+      address_id: addressId,
+      cart_id: cartItemIds ,
+      total: total,
+      payment_method: paymentMethod,
+      order_items: orderItems 
+    });
+
+    await order.save();
+    await collectioncart.deleteMany({ _id: { $in: cartItemIds  } });
+
+    if (paymentMethod === 'onlinepayment') {
+      const razorpayOptions = {
+        amount: total * 100, 
+        currency: 'INR',
+        receipt: `order_${order._id}`,
+        payment_capture: 1
+      };
+      const razorpayOrder = await instance.orders.create(razorpayOptions);
+
+      // open Razorpay checkout modal
+      var options = {
+        "key": "rzp_test_Eq96dbjxRileV6", 
+        "amount": razorpayOptions.amount,
+        "currency": razorpayOptions.currency,
+        "name": "Your Company Name",
+        "description": "Order Payment",
+        "image": "https://your-company-logo.png",
+        "order_id": razorpayOrder.id,
+        "handler": function (response) {
+       
+          console.log(response);
+          
+          res.redirect('/success');
+        },
+       
+        "theme": {
+          "color": "#F37254"
+        }
+      };
+
+      var rzp = new Razorpay(options);
+      rzp.open();
+
+    } else {
+      req.flash('success', 'Order placed successfully!');
+      res.redirect('/success');
+    }
+  } catch (err) {
+    console.log(err);
+    req.flash('error', 'An error occurred while placing the order.');
+    res.send('Error Occurred');
+  }
+}
+
+
+
+module.exports = {
+
+    cart,
+    postCart,
+    deleteCart,
+    checkout,
+    address,
+   // payment,
+    placeOrder,
+    deleteaddress,
+    updateCart 
+    
+    
+
+}
