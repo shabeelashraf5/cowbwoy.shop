@@ -17,7 +17,7 @@ const sentMail = async function (fname,email, token){
         })
 
         const mailOption ={
-            from: 'mastercoding34@gmail.com',
+            from: process.env.SMTP_USER,
             to:email,
             subject:'For Reset Password',
             html:'<h2> Hello '+fname+', please click to <a href="http://localhost:3000/reset-password/?token='+token+'">Reset</a> your password<h2>'
