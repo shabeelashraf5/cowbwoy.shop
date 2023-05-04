@@ -121,21 +121,6 @@ const deleteCustomer = function(req,res){
 }
 
 
-/* function checkManager(req, res, next) {
-    if (req.session && req.session.isManager === true) {
-      next(); 
-    } else {
-      res.status(401).send('Unauthorized'); 
-    }
-  } */
-
-
- /* const adminUser = function(req,res){
-    collectionadmin.find({}, function(err,docs){
-        res.render('admin-adminuser', {admDetails: docs})
-    })
-
-} */
 
 const adminUser = function(req, res) {
     console.log('Checking if user is a manager...');
@@ -273,22 +258,6 @@ const productDetails = async function(req, res, next){
 
 
 
-/* const editproduct = function(req,res){
-    const image = req.files ? req.files.map(file => file.filename) : undefined;
-    collectionproduct.findOneAndUpdate({ _id: req.params.id}, {...req.body, image: image},
-        {new:true}, (err,docs) =>{
-
-            if(err){
-                console.log('Error Occured')
-            }else{
-                
-                res.render('update-product', {proDetails: docs})
-            }
-
-        })
-
-} */
-
 const editproduct = function(req, res) {
     const image = req.files ? req.files.map(file => file.filename) : undefined;
     const update = { ...req.body };
@@ -352,21 +321,6 @@ const deleteimage = function(req, res) {
 
 
 
-/* const updateproduct =  function(req,res){
-
-  
-    const image = req.files ? req.files.map(file => file.filename) : undefined;
-    collectionproduct.findByIdAndUpdate({_id: req.params.id},  {...req.body, image: image} , (err,docs)=>{
-       if(err){
-           console.log('Error Occured')
-       }else{
-
-           console.log('Product Updated')
-           res.redirect('/admin/dashboard/product')
-       }
-   })        
-
-} */
 
 const updateproduct = function(req, res) {
     const newImages = req.files ? req.files.map(file => file.filename) : undefined;
@@ -807,51 +761,6 @@ const deleteproduct = function(req,res){
     }
 
 
-       /* const adminDashboard = async function(req, res) {
-        const today = new Date();
-        const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-        const endOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
-      
-        const totalOrders = await collectionorder.aggregate([
-          { $match: {} },
-          { $group: { _id: null, total: { $sum: "$total" } } }
-        ]);
-      
-        const todayOrders = await collectionorder.aggregate([
-          { $match: { createdAt: { $gte: startOfToday, $lt: endOfToday } } },
-          { $group: { _id: null, total: { $sum: "$total" } } }
-        ]);
-      
-        res.render('admindashboard', { totalOrders: totalOrders[0].total, todayOrders: todayOrders[0].total });
-      }; */
-
-
-
-      /* const adminDashboard = async function(req, res) {
-        const today = new Date();
-        const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-        const endOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
-      
-        const totalOrders = await collectionorder.aggregate([
-          { $match: {} },
-          { $group: { _id: null, total: { $sum: "$total" } } }
-        ]);
-      
-        const todayOrders = await collectionorder.aggregate([
-          { $match: { createdAt: { $gte: startOfToday, $lt: endOfToday } } },
-          { $group: { _id: null, total: { $sum: "$total" } } }
-        ]);
-      
-        const totalOrdersValue = totalOrders.length > 0 ? totalOrders[0].total : '';
-        const todayOrdersValue = todayOrders.length > 0 ? todayOrders[0].total : '';
-
-        
-      
-        res.render('admindashboard', { totalOrders: totalOrdersValue, todayOrders: todayOrdersValue });
-      }; */
-
-
-
         const adminDashboard = async function(req, res) {
             try {
 
@@ -878,7 +787,7 @@ const deleteproduct = function(req,res){
             const orders = await collectionorder.find({});
             const orderCountByCategory = {};
 
-             // calculate the total count of orders for each month
+             
     const orderCountByMonth = {};
     orders.forEach(order => {
       const month = new Date(order.createdAt).getMonth();
@@ -889,7 +798,7 @@ const deleteproduct = function(req,res){
       }
     });
 
-    // populate the labels and data arrays for the line chart
+    
     const monthlySale = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     const orderNumber = monthlySale.map((label, index) => {
       return orderCountByMonth[index] || 0;
@@ -898,12 +807,12 @@ const deleteproduct = function(req,res){
     console.log(monthlySale);
     console.log(orderNumber)
 
-    // escape special characters in the JavaScript variables
+    
     const escapedMonthly = JSON.stringify(monthlySale).replace(/%/g, '%25');
     const escapedorderN = JSON.stringify(orderNumber).replace(/%/g, '%25');
 
         
-            // calculate the total count of orders for each category
+           
             orders.forEach(order => {
                 order.order_items.forEach(item => {
                 const category = item.category;
@@ -915,18 +824,18 @@ const deleteproduct = function(req,res){
                 });
             });
         
-            // populate the labels and data arrays for the pie chart
+            
             const labels = Object.keys(orderCountByCategory);
             const data = Object.values(orderCountByCategory);
         
             console.log(labels);
             console.log(data);
         
-            // escape special characters in the JavaScript variables
+            
             const escapedLabels = JSON.stringify(labels).replace(/%/g, '%25');
             const escapedData = JSON.stringify(data).replace(/%/g, '%25');
         
-            // render the admin dashboard template with the pie chart
+            
             res.render('admindashboard', { escapedLabels, escapedData, escapedMonthly, escapedorderN,  totalOrders: totalOrdersValue, todayOrders: todayOrdersValue });
             } catch (error) {
             console.error(error);
@@ -935,107 +844,11 @@ const deleteproduct = function(req,res){
         };
 
 
-
-     /* const adminReport = function(req,res){
-        collectionorder.find({}, function(err, orders){
-          if(err) throw err;
-      
-          // create PDF file
-          const pdfDoc = new PDFDocument();
-          pdfDoc.pipe(fs.createWriteStream('sales_report.pdf'));
-      
-          pdfDoc.fontSize(18).text('Sales Report', { align: 'center' });
-          pdfDoc.fontSize(12).text(`Generated on: ${new Date().toLocaleDateString()}`, { align: 'right' });
-          pdfDoc.moveDown();
-      
-          // Add table
-          const table = new Table({
-            head: ['Order ID', 'Customer Name', 'Total Amount', 'Status'],
-            colWidths: [100, 200, 100, 100]
-          });
-      
-          orders.forEach(function(order) {
-            table.push([order._id, order.customers_id.name, order.total, order.status]);
-          });
-      
-          pdfDoc.table(table, {
-            prepareHeader: () => pdfDoc.font('Helvetica-Bold'),
-            prepareRow: () => pdfDoc.font('Helvetica')
-          });
-      
-          pdfDoc.end();
-      
-          // create Excel file
-          const xls = json2xls(orders);
-          fs.writeFileSync('sales_report.xlsx', xls, 'binary');
-      
-          // render the view
-          res.render('admin-report');
-        });
-      }; */
-
-  
-      /* const adminReport = async function(req, res) {
-        try {
-          // Retrieve orders from the database with the necessary fields
-          const orders = await collectionorder.find().select('customers_id address_id status total payment_method order_items');
-          
-          // Format the data for the Excel sheet
-          const data = orders.map(order => ({
-            'Order ID': order._id,
-            'Customer ID': order.customers_id,
-            'Address ID': order.address_id,
-            'Status': order.status,
-            'Payment Method': order.payment_method,
-            'Product Title': order.order_items.map(item => `${item.title} (${item.category})`).join(', '),
-            'Product Price': order.order_items.map(item => item.price).join(', '),
-            'Product Quantity': order.order_items.map(item => item.quantity).join(', '),
-            'Total Price': order.total
-          }));
-      
-          // Define the column configuration for the Excel sheet
-          const columns = [
-            { header: 'Order ID', key: 'Order Number' },
-            { header: 'Customer ID', key: 'Customer ID' },
-            { header: 'Address ID', key: 'Address ID' },
-            { header: 'Status', key: 'Status' },
-            { header: 'Payment Method', key: 'Payment Method' },
-            { header: 'Product Title', key: 'Product Title' },
-            { header: 'Product Category', key: 'Product Category' }, // <-- add this line
-            { header: 'Product Price', key: 'Product Price' },
-            { header: 'Product Quantity', key: 'Product Quantity' },
-            { header: 'Total Price', key: 'Total Price' }
-          ];
-      
-          // Create the Excel workbook and worksheet
-          const wb = XLSX.utils.book_new();
-          const ws = XLSX.utils.sheet_add_json({}, data, { header: columns });
-      
-          // Add the worksheet to the workbook
-          XLSX.utils.book_append_sheet(wb, ws, 'Sales Report');
-      
-          // Generate a buffer from the workbook
-          const buffer = XLSX.write(wb, { type: 'buffer' });
-      
-          // Set the response headers
-          res.set({
-            'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'Content-Disposition': 'attachment; filename=sales_report.xlsx'
-          });
-      
-          // Send the file as a response
-          res.send(buffer);
-        } catch (err) {
-          console.error(err);
-          res.status(500).send('Internal Server Error');
-        }
-      }; */
-
       const adminReport = async function(req, res) {
-        // Fetch order data from the database
+        
         const orders = await collectionorder.find().populate('customers_id address_id cart_id.product_id').exec();
       
-        // Generate Excel file
+        
         const workbook = new excel.Workbook();
         const worksheet = workbook.addWorksheet('Sales Report');
         worksheet.columns = [
@@ -1060,10 +873,10 @@ const deleteproduct = function(req,res){
         });
         const buffer = await workbook.xlsx.writeBuffer();
       
-        // Fetch customer data from the database
+        
         const customers = await collection.find().exec();
       
-        // Generate PDF file
+       
         const doc = new PDFDocument();
         doc.fontSize(20).text('Sales Report', { align: 'center' });
         doc.fontSize(12).text('Generated on ' + new Date().toLocaleDateString(), { align: 'center' });

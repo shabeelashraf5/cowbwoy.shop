@@ -7,12 +7,12 @@ const sentMail = async function (fname,email, token){
 
         const transporter = nodemailer.createTransport({
             
-            host: 'smtp.gmail.com',
-            port: 465,
+            host: process.env.SMTP_HOST,
+            port: process.env.SMTP_PORT,
             secure: true,
             auth:{
-                user: 'mastercoding34@gmail.com',
-                pass: 'cbgscfkeoiklzqqa'
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASSWORD
             }
         })
 
@@ -20,7 +20,7 @@ const sentMail = async function (fname,email, token){
             from: 'mastercoding34@gmail.com',
             to:email,
             subject:'For Reset Password',
-            html:'<h2> Hello '+fname+', please click to <a href="http://127.0.0.1:3000/reset-password/?token='+token+'">Reset</a> your password<h2>'
+            html:'<h2> Hello '+fname+', please click to <a href="http://localhost:3000/reset-password/?token='+token+'">Reset</a> your password<h2>'
         }
 
         transporter.sendMail(mailOption, function(error,info){

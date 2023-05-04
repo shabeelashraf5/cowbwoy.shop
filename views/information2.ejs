@@ -325,13 +325,9 @@
 
 $(document).ready(function() {
   $('form[action="/checkout"]').submit(function(event) {
-    // Check if the form is being submitted by the Confirm the Address button
     if ($(event.target).find('button[type="submit"]').hasClass('btn-dark')) {
-      // Check if an address has been selected
       if (!$('input[name="addressId"]:checked').val()) {
-        // Prevent the form from submitting
         event.preventDefault();
-        // Display an error message
         alert('Please select an address to continue to shipping.');
       }
     }
@@ -343,6 +339,7 @@ $(document).ready(function() {
 
 <script>
   $(document).ready(function() {
+    var razorpayKey = '<%= process.env.RAZORPAY_KEY_ID %>';
   $('input[type=radio][name=paymentMethod]').change(function() {
     if (this.value === 'onlinepayment') {
       $('#checkout-form').submit(function(event) {
@@ -359,7 +356,7 @@ $(document).ready(function() {
     var url = form.attr('action');
     var data = form.serialize();
     var options = {
-      "key": "rzp_test_Eq96dbjxRileV6", 
+      "key": razorpayKey, 
       "amount": <%= total * 100 %>,
       "currency": "INR",
       "name": "Cowbwoy",
@@ -371,18 +368,15 @@ $(document).ready(function() {
       },
 
       "handler": function(response) {
-        // send form data to server using AJAX
         $.ajax({
           type: "POST",
           url: '/checkout/order',
           data: data + '&razorpay_payment_id=' + response.razorpay_payment_id + '&razorpay_order_id=' + response.razorpay_order_id + '&razorpay_signature=' + response.razorpay_signature,
           success: function(data) {
-            // handle successful response from server
             console.log(data);
             window.location.href = '/success';
           },
           error: function(xhr, status, error) {
-            // handle error response from server
             console.log(error);
             alert('An error occurred while placing the order.');
           }

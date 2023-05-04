@@ -2,46 +2,6 @@ var express = require('express');
 const collectionproduct = require('../model/productsD')
 const collectioncategory = require('../model/categoryD')
 
-/* const menProduct = async function(req, res) {
-  try {
-    var search = '';
-    if (req.query.search) {
-      search = req.query.search;
-    }
-    var page = 1;
-    if (req.query.page) {
-      page = req.query.page;
-    }
-
-    const limit = 12;
-
-    const query = {
-      active: true,
-      title: {$regex: `.*${search}.*`, $options: 'i'},
-    };
-    
-   
-    const docs = await collectionproduct
-      .find(query)
-      
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
-
-    const count = await collectionproduct
-      .find(query)
-      .countDocuments();
-
-    res.render('product-men', {
-      productDisplay: docs,
-      totalPages: Math.ceil(count / limit),
-      currentPage: page,
-      
-    });
-  } catch (err) {
-    console.log(err.message);
-  }
-} */
-
 
 
 const menProduct = async function(req, res) {

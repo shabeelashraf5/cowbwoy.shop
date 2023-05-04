@@ -147,10 +147,6 @@ const signUp = function(req,res){
   };  
   
  
-  
-  
-
-
 const logoutUser = async function (req,res){
 
    try{
@@ -307,26 +303,6 @@ const userOrderdetails = async function(req, res) {
   });
 };
 
-
-  /* const cancelOrder = async function(req,res){
-
-  const orderId = req.params.orderId;
-  try {
-    const order = await collectionorder.findById(orderId);
-    if (!order) {
-      return res.status(404).send('Order not found');
-    }
-    order.status = 'Order Cancelled';
-    await order.save();
-    res.redirect('/account');
-  } catch (err) {
-    console.log(err);
-    next(err);
-  }
-
-
-} */
-
 const cancelOrder = async function(req, res) {
   const orderId = req.params.orderId;
   try {
@@ -350,22 +326,6 @@ const cancelOrder = async function(req, res) {
   }
 }
 
-/* const postWishlist = async function(req,res){
-
-  try {
-    const wishlist = new collectionwishlist({
-        customers_id: req.session.customerId, 
-        product_id: req.body.product_id
-    });
-    await wishlist.save();
-    res.send('Product added to wishlist successfully.');
-} catch (error) {
-    console.log(error);
-    res.status(500).send('Internal server error');
-} 
-
-
-}*/
 
 const postWishlist = async function(req, res) {
   try {
@@ -381,12 +341,6 @@ const postWishlist = async function(req, res) {
   }
 };
 
-/* const wishlist = async function(req,res){
-  const customerId = req.session.customerId;
-  const wishlistDetails = await collectionwishlist.find({customers_id: customerId}).populate('product_id');
-  
-  res.render('wishlist', {wishlistDetails: wishlistDetails,  loggedIn: req.session.customerId})
-} */
 
 const wishlist = async function(req, res) {
   try {

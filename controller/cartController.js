@@ -57,48 +57,7 @@ const Razorpay = require('razorpay')
 }
 
 
-/* const updateCart = async function (req,res){
 
-  const cartItemId = req.params.cartItemId;
-  const newQuantity = req.body.quantity;
-
-  try {
-    // Update quantity value in database
-    const updatedCartItem = await collectioncart.findByIdAndUpdate(
-      cartItemId,
-      { $set: { quantity: newQuantity } },
-      { new: true }
-    );
-
-    // Fetch updated product information from database
-    const updatedProduct = await collectionproduct.findById(updatedCartItem.product_id);
-
-    // Fetch all cart items for the current customer
-    const customerId = req.session.customerId;
-    const cartItems = await collectioncart
-      .find({ customers_id: customerId })
-      .populate('product_id')
-      .exec();
-
-    // Calculate total amount
-    let totalAmount = 0;
-    cartItems.forEach((cartItem) => {
-      const product = cartItem.product_id;
-      totalAmount += product.price * cartItem.quantity;
-    });
-
-    res.render('cart', {
-      cartItems: cartItems,
-      totalAmount: totalAmount,
-      loggedIn: req.session.customerId
-    });
-  } catch (error) {
-    console.error(error);
-    
-  }
-
-
-} */
 
 const updateCart = async function (req, res) {
   const cartItemId = req.params.cartItemId;
@@ -157,32 +116,6 @@ const updateCart = async function (req, res) {
 
  }
 
-
-
-/* const checkout = async function(req, res) {
-  const customerId = req.session.customerId;
-  const couponCode = req.query.code;
-
-  try {
-    const cartItems = await collectioncart
-      .find({ customers_id: customerId })
-      .populate('product_id')
-      .populate({ path: 'customers_id', select: 'fname lname email' })
-      .exec();
-
-    const addressList = await collectionaddress.find({ customers_id: customerId });
-
-
-    res.render('information1', {
-      cartItems: cartItems,
-      addressList: addressList,
-      loggedIn: req.session.customerId,
-     
-    });
-  } catch (err) {
-    console.log(err);
-  }
-} */
 
   const checkout = async function(req, res) {
   const selectedAddressId = req.query.addressId;
@@ -285,181 +218,6 @@ const deleteaddress = function(req, res) {
   });
 }
 
-
-/* const payment = async function (req,res){
-  const selectedAddressId = req.query.addressId;
-  const couponCode = req.query.code;
-  const customerId = req.session.customerId;
-
-  try {
-    const cartItems = await collectioncart
-      .find({ customers_id: customerId })
-      .populate('product_id')
-      .populate({ path: 'customers_id', select: 'fname lname email' })
-      .exec();
-
-    const coupon = await collectioncoupon.findOne({ code: couponCode });
-
-    let discount = 0;
-    let total = 0;
-
-    
-    cartItems.forEach(function(cartItem) {
-      const product = cartItem.product_id;
-      total += product.price;
-    });
-
-   
-    if (coupon && !coupon.usedBy.includes(customerId)) {
-      discount = coupon.price;
-      total -= discount;
-      await collectioncoupon.findByIdAndUpdate(coupon._id, {$push: {usedBy: customerId}});
-    } else if (coupon && coupon.usedBy.includes(customerId)) {
-      req.flash('error', 'This coupon has already been used by you.');
-    }
-
-    const selectedAddress = await collectionaddress.findOne({_id: selectedAddressId, customers_id: customerId})
-    
-    res.render('payment', {
-      selectedAddress: selectedAddress,
-      cartItems: cartItems,
-      discount: discount,
-      total: total,
-      loggedIn: req.session.customerId
-    });
-  } catch (err) {
-    console.log(err)
-  }
-}  */
-
-
-
- /* const placeOrder = async function(req, res) {
-  const customerId = req.body.customer_id;
-  const addressId = req.body.address_id;
-  const cartIds = req.body.cart;
-  const paymentMethod = req.body.paymentMethod;
-
-  try {
-    const cartItems = await collectioncart.find({ _id: { $in: cartIds } }).populate('product_id').exec();
-    console.log('cartItems:', cartItems); // log cart items to console
-
-    const subtotal = cartItems.reduce((acc, item) => acc + item.quantity * item.product_id.price, 0);
-    const total = subtotal; // assume no discounts for now
-
-    const cartItemIds = cartItems.map(item => item._id);
-
-    const order = new collectionorder({
-      customers_id: customerId,
-      address_id: addressId,
-      cart: cartItemIds,
-      total: total,
-      payment_method: paymentMethod
-    });
-
-    await order.save();
-    await collectioncart.deleteMany({ _id: { $in: cartIds } });
-
-    res.send('Order Confirmed');
-  } catch (err) {
-    console.log(err);
-    req.flash('error', 'An error occurred while placing the order.');
-    res.send('Error Occurred');
-  }
-}; */
-
-
-/* const placeOrder = async function(req, res) {
-  const customerId = req.body.customer_id;
-  const addressId = req.body.address_id;
-  const cartIds = req.body.cart;
-  const paymentMethod = req.body.paymentMethod;
-
-  try {
-    const cartItems = await collectioncart.find({ customers_id: customerId }).populate('product_id').exec();
-    console.log('cartItems:', cartItems); // log cart items to console
-
-    const subtotal = cartItems.reduce((acc, item) => acc + item.quantity * item.product_id.price, 0);
-    const total = subtotal; // assume no discounts for now
-
-    const cartItemIds = cartItems.map(item => item._id);
-    const indexes = await collectionorder.listIndexes(); // remove .toArray() here
-    console.log('indexes:', indexes); // log indexes to console
-
-    const indexExists = indexes.some(index => index.name === 'title_1');
-    if (!indexExists) {
-      await collectionorder.collection.createIndex({ title: 1 }); // corrected line
-    }
-
-    const order = new collectionorder({
-      customers_id: customerId,
-      address_id: addressId,
-      cart_id: cartItemIds,
-      total: total,
-      payment_method: paymentMethod
-    });
-
-    await order.save();
-    await collectioncart.deleteMany({ _id: { $in: cartItemIds } });
-
-    res.redirect('/account');
-  } catch (err) {
-    console.log(err);
-    req.flash('error', 'An error occurred while placing the order.');
-    res.send('Error Occurred');
-  }
-}; */
-
- /* const placeOrder = async function(req, res) {
-  const customerId = req.body.customer_id;
-  const addressId = req.body.address_id;
-  const cartIds = req.body.cart_id;
-  const paymentMethod = req.body.paymentMethod;
-
-  try {
-
-    const cartItems = await collectioncart.find({ customers_id: customerId }).populate('product_id').exec();
-    console.log('cartItems:', cartItems); 
-
-    const subtotal = cartItems.reduce((acc, item) => acc + item.quantity * item.product_id.price, 0);
-    const total = subtotal; 
-
-    
-    const orderItems = cartItems.map(item => ({
-      product_id: item.product_id._id,
-      title: item.product_id.title,
-      image: item.product_id.image,
-      price: item.product_id.price,
-      quantity: item.quantity,
-    }));
-    
-    const cartItemIds = cartItems.map(item => item._id);
-    const indexes = await collectionorder.listIndexes();
-    const indexExists = indexes.some(index => index.name === 'title_1');
-    if (!indexExists) {
-      await collectionorder.collection.createIndex({ title: 1 });
-    }
-    
-    const order = new collectionorder({
-      customers_id: customerId,
-      address_id: addressId,
-      cart_id: cartItemIds ,
-      total: total,
-      payment_method: paymentMethod,
-      order_items: orderItems 
-    });
-
-    await order.save();
-    await collectioncart.deleteMany({ _id: { $in: cartItemIds  } });
-
-    res.redirect('/account');
-  } catch (err) {
-    console.log(err);
-    req.flash('error', 'An error occurred while placing the order.');
-    res.send('Error Occurred');
-  }
-}; */
-
   const placeOrder = async function(req, res) {
   const customerId = req.body.customer_id;
   const addressId = req.body.address_id;
@@ -468,8 +226,8 @@ const deleteaddress = function(req, res) {
   const discount = req.body.discount;
 
   var instance = new Razorpay({ 
-    key_id: 'rzp_test_Eq96dbjxRileV6',
-    key_secret: 'WV60M8zuQzlnwWTHhJ8IzxGq' })
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET })
 
   try {
    // const cartItems = await collectioncart.find({ customers_id: customerId }).populate('product_id').exec();
@@ -487,27 +245,6 @@ const deleteaddress = function(req, res) {
 
     const subtotal = cartItems.reduce((acc, item) => acc + item.quantity * item.product_id.price, 0);
     const total = subtotal - discount;
-
-    /* const orderItems = cartItems.map(item => ({
-      product_id: item.product_id._id,
-      title: item.product_id.title,
-      image: item.product_id.image,
-      category: item.product_id.category_id.title,
-      price: item.product_id.price,
-      quantity: item.quantity,
-    })); */
-
-    /* const orderItems = cartItems.map(item => {
-      console.log(item.product_id.category_id); // check the value of category_id
-      return {
-        product_id: item.product_id._id,
-        title: item.product_id.title,
-        image: item.product_id.image,
-        category: item.product_id.category_id.title,
-        price: item.product_id.price,
-        quantity: item.quantity,
-      };
-    }); */
 
     const orderItems = cartItems.map(item => ({
       product_id: item.product_id._id,
@@ -549,9 +286,9 @@ const deleteaddress = function(req, res) {
       };
       const razorpayOrder = await instance.orders.create(razorpayOptions);
 
-      // open Razorpay checkout modal
+      
       var options = {
-        "key": "rzp_test_Eq96dbjxRileV6", 
+        "key": process.env.RAZORPAY_KEY_ID, 
         "amount": razorpayOptions.amount,
         "currency": razorpayOptions.currency,
         "name": "Your Company Name",
@@ -593,7 +330,6 @@ module.exports = {
     deleteCart,
     checkout,
     address,
-   // payment,
     placeOrder,
     deleteaddress,
     updateCart 
