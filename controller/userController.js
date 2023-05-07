@@ -275,18 +275,16 @@ const resetSuccess = async function(req,res){
     }
 }
 
+
 const userOrder = async function(req,res){
   const customerId = req.session.customerId;
- await collectionorder.find({customers_id: customerId}).sort({createdAt: -1})
-    .populate({ path: 'customers_id', select: 'fname lname email' })
-    .exec(function(err, orders){
-      if(err){
-        console.log(err);
-      } else {
-        res.render('userAccount', {orderDetails: orders, loggedIn: req.session.customerId});
-      }
-    });
+  const orders =   await collectionorder.find({customers_id: customerId}).sort({createdAt: -1})
+  const customer = await collection.findOne({ _id: customerId });
+  
+        res.render('userAccount', {orderDetails: orders, customer: customer, loggedIn: req.session.customerId});
+   
 };
+
 
 const userOrderdetails = async function(req, res) {
   const orderId = req.params.id;
