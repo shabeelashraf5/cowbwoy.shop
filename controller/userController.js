@@ -282,7 +282,7 @@ const userOrder = async function(req,res){
   const orders =   await collectionorder.find({customers_id: customerId}).sort({createdAt: -1})
   const customer = await collection.findOne({ _id: customerId });
   
-        res.render('userAccount', {orderDetails: orders, customer: customer, loggedIn: req.session.customerId});
+        res.render('userAccount', {orderDetails: orders, customerDetails: customer, loggedIn: req.session.customerId});
 
   }catch(err){
     console.log(err)
