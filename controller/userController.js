@@ -309,11 +309,11 @@ const cancelOrder = async function(req, res) {
       return res.status(404).send('Order not found');
     }
 
-    // Deduct the cancelled order amount from the total
+    
     const cancelledOrderAmount = order.total;
     order.total -= cancelledOrderAmount;
 
-    // Update the status to 'Order Cancelled'
+    
     order.status = 'Order Cancelled';
 
     await order.save();
