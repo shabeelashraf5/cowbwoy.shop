@@ -32,7 +32,7 @@ const loadLogin = function(req,res){
 
 }
 
-const loadLoginuser = async function(req, res) {
+/* const loadLoginuser = async function(req, res) {
     try {
       const check = await collection.findOne({ email: req.body.email });
       if (
@@ -56,7 +56,31 @@ const loadLoginuser = async function(req, res) {
       console.log(error.message)
       res.render("loginpage", { errmessage: "Enter your Email and Password" });
     }
-  };
+  }; */
+
+  const loadLoginuser = async function(req, res) {
+    try {
+        const check = await collection.findOne({ email: req.body.email });
+        if (check.signup_completed === false) {
+            res.render("loginpage", { errmessage3: "Please complete your sign up process" });
+        } else if (check.password === req.body.password && check.blocked === false || check.fname === req.body.fname) {
+            req.session.customerId = check._id;
+            console.log(req.body);
+            console.log(req.session);
+            res.redirect("/home");
+        } else if (check.blocked === true) {
+            console.log("User is blocked");
+            res.render("loginpage", { errmessage1: "Your account has been blocked" });
+        } else {
+            console.log("Incorrect Password");
+            res.render("loginpage", { errpass: "Incorrect Password" });
+        }
+    } catch (error) {
+        console.log(error.message);
+        res.render("loginpage", { errmessage: "Enter your Email and Password" });
+    }
+};
+
   
 
 
@@ -66,7 +90,7 @@ const signUp = function(req,res){
 }
 
 
-     const signUpuser = async function(req, res){
+    const signUpuser = async function(req, res){
     const otp = Math.floor(100000 + Math.random() * 900000);
     const data = {
         fname: req.body.fname,
@@ -74,6 +98,7 @@ const signUp = function(req,res){
         email: req.body.email,
         password: req.body.password,
         otp: otp,
+        signup_completed: false
         
     };
     try {
@@ -120,7 +145,7 @@ const signUp = function(req,res){
 } 
 
 
-   const verifyOTP = async function(req, res) {
+   /* const verifyOTP = async function(req, res) {
     const email = req.body.email;
     const otp = req.body.otp;
     const original_otp = req.body.original_otp;
@@ -144,7 +169,40 @@ const signUp = function(req,res){
       console.log(error);
       res.render('otpverificationpage', { email: email, error: 'Server Error' });
     }
-  };  
+  };  */
+
+  const verifyOTP = async function(req, res) {
+    const email = req.body.email;
+    const otp = req.body.otp;
+    const original_otp = req.body.original_otp;
+
+    console.log('Email:', email, 'OTP:', otp);
+
+    if (!otp) {
+        return res.render('otpverificationpage', { email: email, error1: 'Please enter OTP' });
+    }
+
+    try {
+        const result = await collection.findOneAndUpdate(
+            { email: email, otp: original_otp },
+            { $set: { otp: '', signup_completed: true } },
+            { returnOriginal: false }
+        );
+
+        if (result) {
+            // The user has successfully completed the sign-up process, and their data is updated in the database
+            res.render('signuppage',{registration: 'Registration Completed'});
+        } else {
+            res.render('otpverificationpage', { email: email, error: 'Invalid OTP' });
+        }
+    } catch (error) {
+        console.log(error);
+        res.render('otpverificationpage', { email: email, error: 'Server Error' });
+    }
+};
+
+  
+  
   
  
 const logoutUser = async function (req,res){
@@ -201,10 +259,7 @@ const passRecover = function (req,res){
 
   }
 
-
-
-
-
+  
     const resetPassword = async function(req,res){
 
     try {

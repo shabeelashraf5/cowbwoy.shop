@@ -9,7 +9,7 @@ var session = require ('express-session')
 const mongoose = require('mongoose')
 const ejs = require('ejs')
 const nocache = require("nocache")
-const flash = require('express-flash');
+const flash = require('connect-flash');
 const dotenv = require('dotenv').config()
 
 console.log(dotenv.parsed)

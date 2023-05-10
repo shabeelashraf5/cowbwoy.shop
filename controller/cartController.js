@@ -167,7 +167,8 @@ const updateCart = async function (req, res) {
       loggedIn: req.session.customerId,
       subtotal: subtotal,
       coupon: coupon,
-      total: total
+      total: total,
+      flash: req.flash() 
     });
 
     
@@ -230,6 +231,8 @@ const deleteaddress = function(req, res) {
     key_secret: process.env.RAZORPAY_KEY_SECRET })
 
   try {
+
+    
    // const cartItems = await collectioncart.find({ customers_id: customerId }).populate('product_id').exec();
    const cartItems = await collectioncart.find({ customers_id: customerId }).populate({
     path: 'product_id',
@@ -276,8 +279,15 @@ const deleteaddress = function(req, res) {
 
     await order.save();
     await collectioncart.deleteMany({ _id: { $in: cartItemIds  } });
-
+    
+    console.log('addressId:', addressId);
     if (paymentMethod === 'onlinepayment') {
+
+      if (!addressId) { // check if the address is selected
+        req.flash('error1', 'Please select the address');
+        return res.redirect('/checkout');
+      }
+
       const razorpayOptions = {
         amount: total * 100, 
         currency: 'INR',
@@ -299,7 +309,7 @@ const deleteaddress = function(req, res) {
        
           console.log(response);
           
-          res.redirect('/success');
+         res.redirect('/success');
         },
        
         "theme": {
@@ -316,8 +326,8 @@ const deleteaddress = function(req, res) {
     }
   } catch (err) {
     console.log(err);
-    req.flash('error', 'An error occurred while placing the order.');
-    res.send('Error Occurred');
+    req.flash('error1', 'Please select the address');
+    res.redirect('back');
   }
 }
 

@@ -15,9 +15,8 @@ const SignUpSchema = new mongoose.Schema({
     blocked: { type: Boolean, default: false },
     token: {type: String , default: ''},
     otp: { type: String, required: true },
-   
-
-   
+    signup_completed: { type: Boolean, default: false }
+  
 })
 
 

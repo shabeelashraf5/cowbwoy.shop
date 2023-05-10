@@ -235,6 +235,9 @@
                               </tbody>
                             </table>
                           </div>
+                          <% if (flash.error) { %>
+                            <div class="alert alert-danger"><%= flash.error %></div>
+                          <% } %>
                           <form class="d-flex" role="form" method="GET" action="/checkout">
                             <input class="form-control me-2" type="text" name="code" placeholder="Enter Code" aria-label="Coupon Code">
                             <% if (selectedAddress) { %>
@@ -272,6 +275,9 @@
                   </div>
 
                  <form method="POST" id="checkout-form" action="/checkout/order">
+                  <% if (flash.error1) { %>
+                    <div class="alert alert-danger"><%= flash.error1 %></div>
+                    <% } %>
                 
   <div class="form-group">
     <input type="hidden" name="customer_id" value="<%= loggedIn %>">
@@ -352,6 +358,7 @@ $(document).ready(function() {
   });
 
   function placeOrderOnlinePayment() {
+    
     var form = $('#checkout-form');
     var url = form.attr('action');
     var data = form.serialize();
@@ -390,5 +397,8 @@ $(document).ready(function() {
 
 
 </script>
+
+
+
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
