@@ -20,7 +20,7 @@ const sentMail = async function (fname,email, token){
             from: process.env.SMTP_USER,
             to:email,
             subject:'For Reset Password',
-            html:'<h2> Hello '+fname+', please click to <a href="http://localhost:3000/reset-password/?token='+token+'">Reset</a> your password<h2>'
+            html:'<h2> Hello '+fname+', please click to <a href="http://cowbwoy.shop/reset-password/?token='+token+'">Reset</a> your password<h2>'
         }
 
         transporter.sendMail(mailOption, function(error,info){
