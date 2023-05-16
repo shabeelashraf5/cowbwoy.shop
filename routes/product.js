@@ -5,8 +5,10 @@ const authUser = require('../middleware/auth')
 const productController = require('../controller/productController')
 
 router.get('/shop-men',  productController.menProduct)
-router.get('/wishlist', productController.wishlist)
+router.get('/wishlist', authUser.isLogin,  productController.wishlist)
 router.get('/:id',  productController.productSingle)
+router.get('/wishlist/delete/:id',authUser.isLogin, productController.deleteWishlist)
+router.post('/wishlist',   productController.postWishlist )
 
 
 

@@ -112,12 +112,45 @@ const menProduct = async function(req, res) {
  
  }
 
+ const deleteWishlist = function(req,res){
+
+  const wishlistId = req.params.id;
+
+  collectionwishlist.findByIdAndRemove(wishlistId, (err, deletedwishlist) => {
+    if (err) {
+      console.log('Error Occured', err);
+      res.status(500).send('Error Occured');
+    } else {
+      console.log('Wishlist deleted:', deletedwishlist);
+      res.redirect('/product/wishlist');
+    }
+  });
+
+} 
+
+const postWishlist = async function(req, res) {
+  try {
+    const wishlist = new collectionwishlist({
+      customers_id: req.session.customerId,
+      product_id: req.body.product_id
+    });
+    await wishlist.save();
+    res.send('Product added to wishlist successfully.');
+  } catch (error) {
+    console.log(error);
+    res.status(500).send('Internal server error');
+  }
+};
+
 
 module.exports = {
 
     menProduct,
     productSingle,
-    wishlist
+    wishlist,
+    deleteWishlist,
+    postWishlist
+
 
 }
 
