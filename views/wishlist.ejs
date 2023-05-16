@@ -16,12 +16,14 @@
 
 
         <div class="row">
+          
             <% wishlistDetails.forEach(function(item) { %>
+              <% const product = docs.find(doc => doc._id.toString() === item.product_id._id.toString()); %>
             <div class="col-md-3 col-12 d-flex mt-4">
               <div class="card" style="width: 18rem;">
                 <div id="carouselExample" class="carousel slide">
                   <div class="carousel-inner">
-                    <a href="">
+                    <a href="/product/<%= product._id %>">
                     <% item.product_id.image.forEach(function(img, index) { %>
                     <div class="carousel-item <%= index === 0 ? 'active' : '' %>">
                       <div class="xzoom-container">

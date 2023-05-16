@@ -44,6 +44,7 @@
                       <thead>
                         <tr>
                           <th scope="col">Order ID</th>
+                          <th scope="col">Order Name</th>
                           <th scope="col">Date</th>
                           <th scope="col">Delivery Status</th>
                           <th scope="col">Total</th>
@@ -55,6 +56,11 @@
                         <% orderDetails.forEach(odetails => { %>
                           <tr>
                             <th scope="row"><%= odetails._id %></th>
+                            <td>
+                              <% if (odetails.order_items.length > 0) { %>
+                                <%= odetails.order_items[0].category %> - <%= odetails.order_items[0].title %>
+                              <% } %>
+                            </td>
                             <td><%= odetails.createdAt %></td>
                             <td><%= odetails.status %></td>
                             <td><%= odetails.total %></td>
@@ -76,3 +82,22 @@
     </div>
   </section>
   
+
+  <script>
+
+    $(document).ready(function() {
+      $('.description .read-more a').click(function(event) {
+        event.preventDefault();
+        $(this).closest('.description').find('.full-description').show();
+        $(this).closest('.description').find('.read-more').hide();
+        $(this).closest('.description').find('.read-less').show();
+      });
+  
+      $('.description .read-less a').click(function(event) {
+        event.preventDefault();
+        $(this).closest('.description').find('.full-description').hide();
+        $(this).closest('.description').find('.read-more').show();
+        $(this).closest('.description').find('.read-less').hide();
+      });
+    });
+  </script>

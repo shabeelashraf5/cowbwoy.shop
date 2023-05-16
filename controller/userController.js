@@ -8,6 +8,7 @@ const otpsentEmail = require('../auth/otpsentMail')
 const TimerSet = require('../auth/startTimer')
 const collectionorder = require('../model/orderD')
 const collectionwishlist = require('../model/wishlistD')
+const collectionproduct = require('../model/productsD')
 
 
 
@@ -334,7 +335,7 @@ const resetSuccess = async function(req,res){
 const userOrder = async function(req,res){
   try{
   const customerId = req.session.customerId;
-  const orders =   await collectionorder.find({customers_id: customerId}).sort({createdAt: -1})
+  const orders =   await collectionorder.find({customers_id: customerId}).sort({createdAt: -1}).populate('order_items.product_id');
   const customer = await collection.findOne({ _id: customerId });
   
         res.render('userAccount', {orderDetails: orders, customerDetails: customer, loggedIn: req.session.customerId});
@@ -385,7 +386,7 @@ const cancelOrder = async function(req, res) {
 }
 
 
-const postWishlist = async function(req, res) {
+  const postWishlist = async function(req, res) {
   try {
     const wishlist = new collectionwishlist({
       customers_id: req.session.customerId,
@@ -430,12 +431,18 @@ const deleteWishlist = function(req,res){
     }
   });
 
-}
+} 
 
 const successOrder = function(req,res){
 
   res.render('success', {loggedIn: req.session.customerId})
 }
+
+
+
+
+
+
 
 
 module.exports = {
@@ -457,6 +464,7 @@ module.exports = {
     deleteWishlist, 
     userOrderdetails,
     cancelOrder,
-    successOrder
+    successOrder,
     
+  
 }

@@ -1,6 +1,7 @@
 var express = require('express');
 const collectionproduct = require('../model/productsD')
 const collectioncategory = require('../model/categoryD')
+const collectionwishlist = require('../model/wishlistD')
 
 
 
@@ -86,10 +87,37 @@ const menProduct = async function(req, res) {
  }
 
 
+ const wishlist = async function (req,res){
+
+  try {
+    const customerId = req.session.customerId;
+    const wishlistDetails = await collectionwishlist
+      .find({ customers_id: customerId })
+      .populate('product_id');
+
+      const docs = await collectionproduct
+      .find({}).populate('category_id', 'title')
+
+
+    res.render('wishlist', {
+      docs: docs,
+      wishlistDetails: wishlistDetails,
+      loggedIn: req.session.customerId
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send('Internal server error');
+  } 
+
+ 
+ }
+
+
 module.exports = {
 
     menProduct,
     productSingle,
+    wishlist
 
 }
 

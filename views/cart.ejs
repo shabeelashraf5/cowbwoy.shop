@@ -167,32 +167,52 @@
 
   <script>
     // Add event listeners to quantity input fields
-    const quantityInputs = document.querySelectorAll('input[name="quantity"]');
-    quantityInputs.forEach(input => {
-      input.addEventListener('change', event => {
-        const cartItemId = input.dataset.cartItemId;
-        const newQuantity = event.target.value;
-  
-        // Send POST request to update quantity in database
-        fetch(`/cart/${cartItemId}/quantity`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ quantity: newQuantity })
-        })
-        .then(response => response.json())
-        .then(data => {
-          // Update product price in HTML
-          const priceElement = document.querySelector(`#price-${cartItemId}`);
-          priceElement.textContent = data.product.price * data.cartItem.quantity;
-          
+   // Add event listeners to quantity input fields
+const quantityInputs = document.querySelectorAll('input[name="quantity"]');
+quantityInputs.forEach(input => {
+  input.addEventListener('change', event => {
+    const cartItemId = input.dataset.cartItemId;
+    const newQuantity = event.target.value;
 
-          // Reload the page
-          location.reload();
-         
-        })
-        .catch(error => console.error(error));
-      });
-    });
+    // Send POST request to update quantity in database
+    fetch(`/cart/${cartItemId}/quantity`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ quantity: newQuantity })
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      
+      // Check if the response is JSON
+      const contentType = response.headers.get('content-type');
+      if (contentType.includes('application/json')) {
+        return response.json();
+      } else {
+        // Handle non-JSON response
+        console.log('Non-JSON response:', response);
+        location.reload();
+      }
+    })
+    .then(data => {
+      if (typeof data === 'string') {
+        // Handle non-JSON response
+       
+      } else {
+        // Update product price in HTML dynamically
+        console.log('Non-JSON response:', data);
+        const priceElement = document.querySelector(`#price-${data.cartItem._id}`);
+        priceElement.textContent = data.cartItem.product_id.price * data.cartItem.quantity;
+
+
+        
+      }
+    })
+    .catch(error => console.error(error));
+  });
+});
+
   </script>
