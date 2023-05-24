@@ -350,16 +350,18 @@ const userOrder = async function(req,res){
 
 
 const userOrderdetails = async function(req, res) {
+  
   const orderId = req.params.id;
   const orderDetails = await collectionorder.findById(orderId).populate('cart_id.order_items.product_id');
 
   res.render('userAccount-details', {
+      loggedIn: req.session.customerId,
       orderItems: orderDetails.order_items.map(item => ({
       image: item.image[0],
       productName: item.title,
       unitPrice: item.price,
       quantity: item.quantity,
-      category: item.category
+      category: item.category,
     }))
   });
 };
