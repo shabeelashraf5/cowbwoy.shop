@@ -17,7 +17,9 @@ const eHome = async function(req, res) {
   try {
     const docs = await collectionbanner.find({});
     const banner = docs[0].image; 
-    res.render('e-compage', { loggedIn: req.session.customerId, banner: banner });
+    const docsp = await collectionproduct
+      .find({}).populate('category_id', 'title').limit(8)
+    res.render('e-compage', { loggedIn: req.session.customerId, banner: banner, productDisplay: docsp });
   } catch (error) {
     console.error(error);
     res.status(500).send('Internal Server Error');
