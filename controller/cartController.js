@@ -6,9 +6,6 @@ const collectionaddress = require('../model/address');
 const collectioncoupon = require('../model/couponD')
 const collectionorder = require('../model/orderD')
 const Razorpay = require('razorpay')
-const Swal = require('sweetalert2');
-
-
 
     const cart = function(req, res) { 
     const customerId = req.session.customerId;
