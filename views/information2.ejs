@@ -381,8 +381,17 @@ $(document).ready(function() {
           data: data + '&razorpay_payment_id=' + response.razorpay_payment_id + '&razorpay_order_id=' + response.razorpay_order_id + '&razorpay_signature=' + response.razorpay_signature,
           success: function(data) {
             console.log(data);
-            window.location.href = '/success';
-          },
+        // Show success message
+    Swal.fire({
+      icon: 'success',
+      title: 'Order placed successfully!',
+      showConfirmButton: false,
+      timer: 5000
+    }).then(function() {
+      // Redirect to '/account' after showing the message
+      window.location.href = '/account';
+    });
+  },
           error: function(xhr, status, error) {
             console.log(error);
             alert('An error occurred while placing the order.');

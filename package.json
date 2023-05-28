@@ -35,6 +35,7 @@
     "pdfmake": "^0.2.7",
     "randomstring": "^1.2.3",
     "razorpay": "^2.8.6",
+    "sweetalert2": "^11.7.5",
     "validator": "^13.9.0",
     "xlsx": "^0.18.5"
   },

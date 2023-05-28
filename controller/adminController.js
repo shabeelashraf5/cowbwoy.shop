@@ -229,6 +229,7 @@ const productDetails = async function(req, res, next){
     const price = req.body.price;
     const description = req.body.description;
     const category_id = req.body.category_id;
+    const gender = req.body.gender
 
   
     if (!title || !image || !price || !description || !category_id) {
@@ -242,7 +243,8 @@ const productDetails = async function(req, res, next){
         image,
         price,
         description,
-        category_id
+        category_id,
+        gender
     };
 
     try {

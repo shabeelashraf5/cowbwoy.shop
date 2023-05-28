@@ -61,7 +61,6 @@ const loadLogin = function(req,res){
     }
   }; */
 
-  //hello
 
   const loadLoginuser = async function(req, res) {
     try {
@@ -342,7 +341,7 @@ const userOrder = async function(req,res){
   const orders =   await collectionorder.find({customers_id: customerId}).sort({createdAt: -1}).populate('order_items.product_id');
   const customer = await collection.findOne({ _id: customerId });
   
-        res.render('userAccount', {orderDetails: orders, customerDetails: customer, loggedIn: req.session.customerId});
+        res.render('userAccount', {orderDetails: orders, customerDetails: customer,flash: req.flash() , loggedIn: req.session.customerId});
 
   }catch(err){
     console.log(err)

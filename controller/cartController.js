@@ -6,6 +6,8 @@ const collectionaddress = require('../model/address');
 const collectioncoupon = require('../model/couponD')
 const collectionorder = require('../model/orderD')
 const Razorpay = require('razorpay')
+const Swal = require('sweetalert2');
+
 
 
     const cart = function(req, res) { 
@@ -309,7 +311,7 @@ const deleteaddress = function(req, res) {
        
           console.log(response);
           
-         res.redirect('/success');
+         res.redirect('/account');
         },
        
         "theme": {
@@ -322,7 +324,7 @@ const deleteaddress = function(req, res) {
 
     } else {
       req.flash('success', 'Order placed successfully!');
-      res.redirect('/success');
+      res.redirect('/account');
     }
   } catch (err) {
     console.log(err);
