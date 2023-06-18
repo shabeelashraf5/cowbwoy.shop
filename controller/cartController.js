@@ -232,7 +232,7 @@ const deleteaddress = function(req, res) {
   try {
 
     
-   // const cartItems = await collectioncart.find({ customers_id: customerId }).populate('product_id').exec();
+  
    const cartItems = await collectioncart.find({ customers_id: customerId }).populate({
     path: 'product_id',
     populate: {
@@ -252,7 +252,7 @@ const deleteaddress = function(req, res) {
       product_id: item.product_id._id,
       title: item.product_id.title,
       image: item.product_id.image,
-      category: item.product_id.category_id.title, // access the title field of the category document
+      category: item.product_id.category_id.title, 
       price: item.product_id.price,
       quantity: item.quantity,
 
