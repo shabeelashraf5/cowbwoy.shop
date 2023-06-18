@@ -33,6 +33,7 @@
     "otp-generator": "^4.0.1",
     "pdfkit": "^0.13.0",
     "pdfmake": "^0.2.7",
+    "phantomjs-prebuilt": "^2.1.16",
     "randomstring": "^1.2.3",
     "razorpay": "^2.8.6",
     "sweetalert2": "^11.7.5",
